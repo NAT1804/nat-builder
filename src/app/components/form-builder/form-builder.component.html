@@ -1,0 +1,34 @@
+<div nz-row [nzGutter]="16" class="h-full">
+  <div nz-col nzSpan="8">
+    <h2>To do</h2>
+    <nz-list
+      cdkDropList
+      #todoList="cdkDropList"
+      [cdkDropListData]="todo"
+      [cdkDropListConnectedTo]="[doneList]"
+      class="example-list"
+      (cdkDropListDropped)="drop($event)"
+    >
+      @for (item of todo; track item) {
+      <nz-list-item class="example-box" cdkDrag>{{ item }}</nz-list-item>
+      }
+    </nz-list>
+  </div>
+  <div nz-col nzSpan="8">
+    <h2>Done</h2>
+
+    <nz-list
+      cdkDropList
+      #doneList="cdkDropList"
+      [cdkDropListData]="done"
+      [cdkDropListConnectedTo]="[todoList]"
+      class="example-list"
+      (cdkDropListDropped)="drop($event)"
+    >
+      @for (item of done; track item) {
+      <nz-list-item class="example-box" cdkDrag>{{ item }}</nz-list-item>
+      }
+    </nz-list>
+  </div>
+  <div nz-col nzSpan="8">c</div>
+</div>
