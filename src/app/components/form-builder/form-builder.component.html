@@ -1,4 +1,11 @@
-<nat-upload-file></nat-upload-file>
+<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
+  <div class="mb-3">
+    <nat-input formControlName="username"></nat-input>
+  </div>
+  <button type="submit" class="btn btn-danger btn-lg btn-block">Submit</button>
+</form>
+
+<!-- <nat-upload-file></nat-upload-file> -->
 
 <!-- <div nz-row [nzGutter]="16" class="h-full">
   <div nz-col nzSpan="8">
