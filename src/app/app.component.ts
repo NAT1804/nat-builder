@@ -9,4 +9,6 @@ import { ThemeSelectorComponent } from '@components/theme-selector/theme-selecto
   templateUrl: './app.component.html',
   styleUrl: './app.component.less',
 })
-export class AppComponent {}
+export class AppComponent {
+  title = 'nat-builder';
+}

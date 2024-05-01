@@ -13,4 +13,10 @@ describe('ThemeService', () => {
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
+
+  it('first load theme', () => {
+    service.loadTheme().then((theme: string) => {
+      expect(theme).toBe('default');
+    });
+  });
 });

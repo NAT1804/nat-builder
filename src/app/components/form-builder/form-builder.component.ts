@@ -14,6 +14,7 @@ import {
   CdkDrag,
   CdkDropList,
 } from '@angular/cdk/drag-drop';
+import { UploadFileComponent } from '@components/common/upload-file/upload-file.component';
 
 @Component({
   selector: 'app-form-builder',
@@ -26,6 +27,7 @@ import {
     NzNotificationModule,
     CdkDropList,
     CdkDrag,
+    UploadFileComponent,
   ],
   templateUrl: './form-builder.component.html',
   styleUrl: './form-builder.component.less',
