@@ -1,5 +1,23 @@
+@import "@styles/themes/base.less";
+
+@padding-content: 15px;
+
+nz-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .header-title {
+    margin-top: auto;
+    margin-bottom: auto;
+    font-size: 24px;
+    font-weight: bold;
+  }
+}
+
 nz-content {
-  height: calc(100vh - 64px - 70px);
-  padding-right: 15px;
-  padding-left: 15px;
+  height: auto;
+  padding: @padding-content;
+  .responsive(@xl, {
+    height: calc(100vh - @header-height - @padding-content);
+  });
 }

@@ -16,13 +16,6 @@ export const routes: Routes = [
         loadComponent: () =>
           import('@pages/home/home.component').then((m) => m.HomeComponent),
       },
-      {
-        path: 'form',
-        loadChildren: () =>
-          import('@pages/list-form/list-form.routes').then(
-            (m) => m.listFormRoutes
-          ),
-      },
     ],
   },
 ];

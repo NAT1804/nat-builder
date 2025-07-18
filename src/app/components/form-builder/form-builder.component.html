@@ -1,43 +1,36 @@
-<form [formGroup]="registrationForm" (ngSubmit)="onSubmit()">
-  <div class="mb-3">
-    <nat-input formControlName="username"></nat-input>
+<div class="form-builder-container" nz-row [nzGutter]="24">
+  <!-- Left Panel - Form Data Entry -->
+  <div nz-col nzSpan="24" nzXl="12" class="form-panel">
+    <app-form-data-entry
+      [initialData]="defaultResumeForm"
+      (formDataChange)="onFormDataChange($event)"
+    ></app-form-data-entry>
   </div>
-  <button type="submit" class="btn btn-danger btn-lg btn-block">Submit</button>
-</form>
 
-<!-- <nat-upload-file></nat-upload-file> -->
-
-<!-- <div nz-row [nzGutter]="16" class="h-full">
-  <div nz-col nzSpan="8">
-    <h2>To do</h2>
-    <nz-list
-      cdkDropList
-      #todoList="cdkDropList"
-      [cdkDropListData]="todo"
-      [cdkDropListConnectedTo]="[doneList]"
-      class="example-list"
-      (cdkDropListDropped)="drop($event)"
-    >
-      @for (item of todo; track item) {
-      <nz-list-item class="example-box" cdkDrag>{{ item }}</nz-list-item>
-      }
-    </nz-list>
+  <!-- Right Panel - SVG Preview -->
+  <div nz-col nzSpan="24" nzXl="12" class="preview-panel">
+    <div class="action-preview-panel">
+      <button
+        nz-button
+        nzType="default"
+        nz-tooltip
+        nzTooltipTitle="Download PDF"
+        [nzTooltipPlacement]="'left'"
+        (click)="downloadResume()"
+      >
+        <span nz-icon nzType="download"></span>
+      </button>
+      <button
+        nz-button
+        nzType="default"
+        nz-tooltip
+        nzTooltipTitle="Print"
+        [nzTooltipPlacement]="'left'"
+        (click)="printResume()"
+      >
+        <span nz-icon nzType="printer"></span>
+      </button>
+    </div>
+    <div #svgContainer class="resume-svg"></div>
   </div>
-  <div nz-col nzSpan="8">
-    <h2>Done</h2>
-
-    <nz-list
-      cdkDropList
-      #doneList="cdkDropList"
-      [cdkDropListData]="done"
-      [cdkDropListConnectedTo]="[todoList]"
-      class="example-list"
-      (cdkDropListDropped)="drop($event)"
-    >
-      @for (item of done; track item) {
-      <nz-list-item class="example-box" cdkDrag>{{ item }}</nz-list-item>
-      }
-    </nz-list>
-  </div>
-  <div nz-col nzSpan="8">c</div>
-</div> -->
+</div>

@@ -1,53 +1,73 @@
-.example-container {
-  width: 400px;
-  max-width: 100%;
-  margin: 0 25px 25px 0;
-  display: inline-block;
-  vertical-align: top;
+@import "@styles/themes/base.less";
+
+.form-builder-container {
+  height: 100%;
 }
 
-.example-list {
-  border: solid 1px #ccc;
-  min-height: 60px;
-  // background: white;
-  border-radius: 4px;
-  overflow: hidden;
+.form-panel {
+  height: auto;
+  overflow-y: auto;
+
+  .responsive(@xl, {
+    height: 100%
+  });
+}
+
+.preview-panel {
+  height: 100%;
+  position: relative;
+  .action-preview-panel {
+    position: absolute;
+    top: 0;
+    right: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.resume-svg {
+  margin: auto;
+  width: auto;
+  height: 100%;
+  aspect-ratio: 210 / 297; /* A4 aspect ratio */
+  background-color: #fff;
+}
+
+.resume-svg svg {
   display: block;
+  width: 100%;
+  height: 100%;
 }
 
-.example-box {
-  padding: 20px 10px;
-  border-bottom: solid 1px #ccc;
-  // color: rgba(0, 0, 0, 0.87);
+.experience-item,
+.education-item,
+.skill-item,
+.project-item {
+  margin-bottom: 16px;
+}
+
+.add-button-container {
+  text-align: center;
+  margin: 16px 0;
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #d9d9d9;
+}
+
+.skill-level-display {
   display: flex;
-  flex-direction: row;
   align-items: center;
-  justify-content: space-between;
-  box-sizing: border-box;
-  cursor: move;
-  // background: white;
-  font-size: 14px;
+  gap: 12px;
+  margin-top: 8px;
 }
 
-.cdk-drag-preview {
-  box-sizing: border-box;
-  border-radius: 4px;
-  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2),
-    0 8px 10px 1px rgba(0, 0, 0, 0.14), 0 3px 14px 2px rgba(0, 0, 0, 0.12);
-}
-
-.cdk-drag-placeholder {
-  opacity: 0;
-}
-
-.cdk-drag-animating {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
-}
-
-.example-box:last-child {
-  border: none;
-}
-
-.example-list.cdk-drop-list-dragging .example-box:not(.cdk-drag-placeholder) {
-  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+.level-text {
+  font-size: 12px;
+  color: #666;
+  min-width: 40px;
 }
