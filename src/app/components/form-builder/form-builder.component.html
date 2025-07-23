@@ -2,14 +2,57 @@
   <!-- Left Panel - Form Data Entry -->
   <div nz-col nzSpan="24" nzXl="12" class="form-panel">
     <app-form-data-entry
+      [listSections]="initialListSections"
       [initialData]="defaultResumeForm"
       (formDataChange)="onFormDataChange($event)"
+      (listSectionsChange)="onListSectionsChange($event)"
     ></app-form-data-entry>
   </div>
 
   <!-- Right Panel - SVG Preview -->
   <div nz-col nzSpan="24" nzXl="12" class="preview-panel">
-    <div class="action-preview-panel">
+    <!-- Settings Toggle Button -->
+    <div class="settings-toggle">
+      <button
+        nz-button
+        nzType="text"
+        nzSize="default"
+        (click)="toggleActionPanel()"
+        nz-tooltip
+        nzTooltipTitle="Toggle Settings"
+        [nzTooltipPlacement]="'left'"
+      >
+        <span nz-icon nzType="setting"></span>
+      </button>
+    </div>
+
+    <div class="action-preview-panel" [class.hidden]="!showActionPanel">
+      <!-- Font Controls -->
+      <nz-select
+        [(ngModel)]="selectedFont"
+        (ngModelChange)="onFontChange($event)"
+        nz-tooltip
+        nzTooltipTitle="Font Family"
+      >
+        @for (font of listFonts; track font.value) {
+        <nz-option [nzValue]="font.value" [nzLabel]="font.label"></nz-option>
+        }
+      </nz-select>
+
+      <div class="font-size-container">
+        <div>Size</div>
+        <nz-input-number
+          [(ngModel)]="baseFontSize"
+          nzMin="3"
+          nzMax="6"
+          [nzStep]="0.5"
+          (ngModelChange)="onFontSizeChange($event)"
+          nz-tooltip
+          nzTooltipTitle="Base Font Size"
+        >
+        </nz-input-number>
+      </div>
+
       <button
         nz-button
         nzType="default"
@@ -19,6 +62,7 @@
         (click)="downloadResume()"
       >
         <span nz-icon nzType="download"></span>
+        <span>Download PDF</span>
       </button>
       <button
         nz-button
@@ -29,6 +73,7 @@
         (click)="printResume()"
       >
         <span nz-icon nzType="printer"></span>
+        <span>Print</span>
       </button>
     </div>
     <div #svgContainer class="resume-svg"></div>

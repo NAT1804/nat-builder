@@ -3,7 +3,7 @@ export function printResume(svgElement: any) {
 
   const svgData = new XMLSerializer().serializeToString(svgElement);
 
-  const printWindow = window;
+  const printWindow = window.open('', '_blank');
   if (printWindow) {
     printWindow.document.write(`
       <html>

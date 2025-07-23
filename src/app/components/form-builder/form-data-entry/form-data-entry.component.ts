@@ -12,13 +12,11 @@ import { CommonModule } from '@angular/common';
 import {
   Component,
   DestroyRef,
-  ElementRef,
   EventEmitter,
   inject,
   Input,
   OnInit,
   Output,
-  ViewChild,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -33,12 +31,19 @@ import {
   IResumeData,
   RESUME_SECTION,
   SKILL_LEVEL,
+  SKILL_LEVEL_OPTIONS,
 } from '@models/resume.model';
 import {
   NG_ZORRO_MODULES,
   NzNotificationService,
 } from '@shared/ng-zorro.module';
 import { distinctUntilChanged } from 'rxjs';
+import {
+  ArrayFormSectionComponent,
+  ArraySectionConfig,
+} from './components/array-form-section/array-form-section.component';
+import { PersonalInfoFormComponent } from './components/personal-info-form/personal-info-form.component';
+import { SummaryFormComponent } from './components/summary-form/summary-form.component';
 
 @Component({
   selector: 'app-form-data-entry',
@@ -52,6 +57,9 @@ import { distinctUntilChanged } from 'rxjs';
     CdkDragHandle,
     CdkDragPreview,
     CdkDragPlaceholder,
+    PersonalInfoFormComponent,
+    SummaryFormComponent,
+    ArrayFormSectionComponent,
   ],
   templateUrl: './form-data-entry.component.html',
   styleUrl: './form-data-entry.component.less',
@@ -62,10 +70,101 @@ export class FormDataEntryComponent implements OnInit {
   private destroyRef = inject(DestroyRef);
 
   @Input() initialData?: IResumeData;
+  @Input() listSections?: any;
   @Output() formDataChange = new EventEmitter<any>();
+  @Output() listSectionsChange = new EventEmitter<any>();
 
-  readonly listSections = DEFAULT_RESUME_LIST_SECTIONS;
+  readonly skillLevelOptions = SKILL_LEVEL_OPTIONS;
   readonly RESUME_SECTION = RESUME_SECTION;
+
+  // Section configurations
+  readonly experienceConfig: ArraySectionConfig = {
+    title: 'Experience',
+    addButtonText: 'Add Experience',
+    fields: [
+      {
+        name: 'jobTitle',
+        label: 'Job title',
+        type: 'text',
+        placeholder: 'Job title',
+      },
+      {
+        name: 'company',
+        label: 'Company',
+        type: 'text',
+        placeholder: 'Company name',
+      },
+      { name: 'startDate', label: 'Start & End Date', type: 'date-range' },
+      { name: 'description', label: 'Description', type: 'rich-text' },
+    ],
+  };
+
+  readonly educationConfig: ArraySectionConfig = {
+    title: 'Education',
+    addButtonText: 'Add Education',
+    fields: [
+      {
+        name: 'school',
+        label: 'School',
+        type: 'text',
+        placeholder: 'e.g., University of California, Los Angeles',
+      },
+      {
+        name: 'degree',
+        label: 'Degree',
+        type: 'text',
+        placeholder: 'e.g., Bachelor of Science, Master of Science',
+      },
+      { name: 'startDate', label: 'Start & End Date', type: 'date-range' },
+      {
+        name: 'city',
+        label: 'City',
+        type: 'text',
+        placeholder: 'e.g., Los Angeles',
+      },
+      { name: 'description', label: 'Description', type: 'rich-text' },
+    ],
+  };
+
+  readonly skillsConfig: ArraySectionConfig = {
+    title: 'Skills',
+    addButtonText: 'Add Skill',
+    fields: [
+      {
+        name: 'name',
+        label: 'Skill Name',
+        type: 'text',
+        placeholder: 'e.g., JavaScript, React',
+      },
+      {
+        name: 'level',
+        label: 'Level',
+        type: 'radio',
+        options: SKILL_LEVEL_OPTIONS,
+      },
+    ],
+  };
+
+  readonly projectsConfig: ArraySectionConfig = {
+    title: 'Projects',
+    addButtonText: 'Add Project',
+    fields: [
+      {
+        name: 'name',
+        label: 'Project Name',
+        type: 'text',
+        placeholder: 'Project name',
+      },
+      {
+        name: 'city',
+        label: 'City',
+        type: 'text',
+        placeholder: 'e.g., Los Angeles',
+      },
+      { name: 'startDate', label: 'Start & End Date', type: 'date-range' },
+      { name: 'description', label: 'Description', type: 'rich-text' },
+    ],
+  };
 
   resumeForm = this.fb.group({
     personalInfo: this.fb.group({
@@ -118,6 +217,10 @@ export class FormDataEntryComponent implements OnInit {
     return this.resumeForm.get('personalInfo') as FormGroup;
   }
 
+  get summaryFormGroup() {
+    return this.resumeForm;
+  }
+
   get experience() {
     return this.resumeForm.get('experience') as FormArray;
   }
@@ -140,8 +243,8 @@ export class FormDataEntryComponent implements OnInit {
       jobTitle: [''],
       company: [''],
       city: [''],
-      startDate: [new Date()],
-      endDate: [null as Date | null],
+      startDate: [null],
+      endDate: [null],
       description: [''],
     });
     this.experience.push(experienceGroup);
@@ -152,8 +255,9 @@ export class FormDataEntryComponent implements OnInit {
       school: [''],
       degree: [''],
       city: [''],
-      startDate: [new Date()],
-      endDate: [null as Date | null],
+      startDate: [null],
+      endDate: [null],
+      description: [''],
     });
     this.education.push(educationGroup);
   }
@@ -161,7 +265,7 @@ export class FormDataEntryComponent implements OnInit {
   addSkill() {
     const skillGroup = this.fb.group({
       name: [''],
-      level: [SKILL_LEVEL.NOVICE],
+      level: [SKILL_LEVEL.SKILLFUL],
     });
     this.skills.push(skillGroup);
   }
@@ -171,8 +275,8 @@ export class FormDataEntryComponent implements OnInit {
       name: [''],
       description: [''],
       city: [''],
-      startDate: [new Date()],
-      endDate: [null as Date | null],
+      startDate: [null],
+      endDate: [null],
     });
     this.projects.push(projectGroup);
   }
@@ -224,5 +328,6 @@ export class FormDataEntryComponent implements OnInit {
         event.currentIndex
       );
     }
+    this.listSectionsChange.emit(this.listSections);
   }
 }

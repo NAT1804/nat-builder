@@ -1,12 +1,17 @@
 <nz-card nzTitle="Editor" [nzExtra]="actionEditorTpl">
   <form nz-form [formGroup]="resumeForm">
+    <nz-collapse>
+      <nz-collapse-panel nzHeader="Personal Info">
+        <app-personal-info-form [formGroup]="personalInfo">
+        </app-personal-info-form>
+      </nz-collapse-panel>
+    </nz-collapse>
     <nz-collapse
       cdkDropList
-      #todoList="cdkDropList"
       [cdkDropListData]="listSections"
       (cdkDropListDropped)="drop($event)"
-      nzExpandIconPosition="start"
       class="collapse-list"
+      nzExpandIconPosition="start"
     >
       @for (item of listSections; track item.formGroupName) {
       <nz-collapse-panel
@@ -16,354 +21,54 @@
         class="collapse-box"
       >
         <div class="collapse-custom-placeholder" *cdkDragPlaceholder></div>
-        @switch (item.formGroupName) { @case ('personalInfo') {
-        <div formGroupName="personalInfo">
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Job Title</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input your job title!"
-            >
-              <input
-                nz-input
-                formControlName="jobTitle"
-                placeholder="Enter your job title"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">First Name</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input your first name!"
-            >
-              <input
-                nz-input
-                formControlName="firstName"
-                placeholder="Enter your first name"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Last Name</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input your last name!"
-            >
-              <input
-                nz-input
-                formControlName="lastName"
-                placeholder="Enter your last name"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Email</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input a valid email!"
-            >
-              <input
-                nz-input
-                formControlName="email"
-                placeholder="Enter your email"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Phone</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input a valid phone number!"
-            >
-              <input
-                nz-input
-                formControlName="phone"
-                placeholder="Enter your phone number"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Address</nz-form-label>
-            <nz-form-control [nzSm]="24" [nzXs]="24">
-              <input
-                nz-input
-                formControlName="address"
-                placeholder="Enter your address"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">City</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input your city!"
-            >
-              <input
-                nz-input
-                formControlName="city"
-                placeholder="Enter your city"
-              />
-            </nz-form-control>
-          </nz-form-item>
-          <nz-form-item>
-            <nz-form-label [nzSm]="24" [nzXs]="24">Country</nz-form-label>
-            <nz-form-control
-              [nzSm]="24"
-              [nzXs]="24"
-              nzErrorTip="Please input your country!"
-            >
-              <input
-                nz-input
-                formControlName="country"
-                placeholder="Enter your country"
-              />
-            </nz-form-control>
-          </nz-form-item>
-        </div>
-        } @case (RESUME_SECTION.SUMMARY) {
-        <nz-form-item>
-          <nz-form-label [nzSm]="24" [nzXs]="24">Summary</nz-form-label>
-          <nz-form-control [nzSm]="24" [nzXs]="24">
-            <textarea
-              nz-input
-              formControlName="summary"
-              [nzAutosize]="{ minRows: 3, maxRows: 12 }"
-              placeholder="Write a brief summary..."
-            ></textarea>
-          </nz-form-control>
-        </nz-form-item>
+
+        @switch (item.formGroupName) { @case (RESUME_SECTION.SUMMARY) {
+        <app-summary-form [formGroup]="summaryFormGroup"> </app-summary-form>
         } @case (RESUME_SECTION.EXPERIENCE) {
-        <div formArrayName="experience">
-          <div
-            *ngFor="let experienceGroup of experience.controls; let i = index"
-            [formGroupName]="i"
-            class="experience-item"
-          >
-            <nz-card [nzTitle]="'Experience ' + (i + 1)">
-              <div nz-row [nzGutter]="16">
-                <div nz-col nzSpan="12">
-                  <nz-form-item>
-                    <nz-form-label [nzSpan]="8" nzRequired
-                      >Company</nz-form-label
-                    >
-                    <nz-form-control [nzSpan]="16">
-                      <input
-                        nz-input
-                        formControlName="company"
-                        placeholder="Company name"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-              </div>
-
-              <nz-form-item>
-                <nz-form-label [nzSpan]="4">Description</nz-form-label>
-                <nz-form-control [nzSpan]="20">
-                  <textarea
-                    nz-input
-                    formControlName="description"
-                    [nzAutosize]="{ minRows: 2, maxRows: 4 }"
-                    placeholder="Describe your role and responsibilities..."
-                  ></textarea>
-                </nz-form-control>
-              </nz-form-item>
-
-              <button
-                nz-button
-                nzType="text"
-                nzDanger
-                (click)="removeExperience(i)"
-                *ngIf="experience.length > 1"
-              >
-                <span nz-icon nzType="delete"></span>
-                Remove
-              </button>
-            </nz-card>
-          </div>
-
-          <div class="add-button-container">
-            <button nz-button nzType="dashed" (click)="addExperience()">
-              <span nz-icon nzType="plus"></span>
-              Add Experience
-            </button>
-          </div>
-        </div>
+        <app-array-form-section
+          [formArray]="experience"
+          [config]="experienceConfig"
+          (addItemEvent)="addExperience()"
+          (removeItemEvent)="removeExperience($event)"
+        >
+        </app-array-form-section>
         } @case (RESUME_SECTION.SKILLS) {
-        <div formArrayName="skills">
-          <div
-            *ngFor="let skillGroup of skills.controls; let i = index"
-            [formGroupName]="i"
-            class="skill-item"
-          >
-            <nz-card [nzTitle]="'Skill ' + (i + 1)">
-              <div nz-row [nzGutter]="16">
-                <div nz-col nzSpan="12">
-                  <nz-form-item>
-                    <nz-form-label [nzSpan]="8" nzRequired
-                      >Skill Name</nz-form-label
-                    >
-                    <nz-form-control [nzSpan]="16">
-                      <input
-                        nz-input
-                        formControlName="name"
-                        placeholder="e.g., JavaScript, React"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-              </div>
-
-              <nz-form-item>
-                <nz-form-label [nzSpan]="4" nzRequired>Level</nz-form-label>
-                <nz-form-control [nzSpan]="20">
-                  <nz-slider
-                    formControlName="level"
-                    [nzMin]="0"
-                    [nzMax]="100"
-                    [nzStep]="5"
-                  ></nz-slider>
-                  <div class="skill-level-display">
-                    <nz-progress
-                      [nzPercent]="skillGroup.get('level')?.value || 0"
-                      [nzShowInfo]="false"
-                      [nzStrokeColor]="'#1890ff'"
-                    ></nz-progress>
-                    <span class="level-text"
-                      >{{ skillGroup.get("level")?.value || 0 }}%</span
-                    >
-                  </div>
-                </nz-form-control>
-              </nz-form-item>
-
-              <button
-                nz-button
-                nzType="text"
-                nzDanger
-                (click)="removeSkill(i)"
-                *ngIf="skills.length > 1"
-              >
-                <span nz-icon nzType="delete"></span>
-                Remove
-              </button>
-            </nz-card>
-          </div>
-
-          <div class="add-button-container">
-            <button nz-button nzType="dashed" (click)="addSkill()">
-              <span nz-icon nzType="plus"></span>
-              Add Skill
-            </button>
-          </div>
-        </div>
+        <app-array-form-section
+          [formArray]="skills"
+          [config]="skillsConfig"
+          (addItemEvent)="addSkill()"
+          (removeItemEvent)="removeSkill($event)"
+        >
+        </app-array-form-section>
         } @case (RESUME_SECTION.EDUCATION) {
-        <div formArrayName="education">
-          <div
-            *ngFor="let educationGroup of education.controls; let i = index"
-            [formGroupName]="i"
-            class="education-item"
-          >
-            <nz-card [nzTitle]="'Education ' + (i + 1)">
-              <div nz-row [nzGutter]="16">
-                <div nz-col nzSpan="12">
-                  <nz-form-item>
-                    <nz-form-label [nzSpan]="8" nzRequired
-                      >Degree</nz-form-label
-                    >
-                    <nz-form-control [nzSpan]="16">
-                      <input
-                        nz-input
-                        formControlName="degree"
-                        placeholder="e.g., Bachelor of Science"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-              </div>
-
-              <button
-                nz-button
-                nzType="text"
-                nzDanger
-                (click)="removeEducation(i)"
-                *ngIf="education.length > 1"
-              >
-                <span nz-icon nzType="delete"></span>
-                Remove
-              </button>
-            </nz-card>
-          </div>
-
-          <div class="add-button-container">
-            <button nz-button nzType="dashed" (click)="addEducation()">
-              <span nz-icon nzType="plus"></span>
-              Add Education
-            </button>
-          </div>
-        </div>
+        <app-array-form-section
+          [formArray]="education"
+          [config]="educationConfig"
+          (addItemEvent)="addEducation()"
+          (removeItemEvent)="removeEducation($event)"
+        >
+        </app-array-form-section>
         } @case (RESUME_SECTION.PROJECTS) {
-        <div formArrayName="projects">
-          <div
-            *ngFor="let projectGroup of projects.controls; let i = index"
-            [formGroupName]="i"
-            class="project-item"
-          >
-            <nz-card [nzTitle]="'Project ' + (i + 1)">
-              <div nz-row [nzGutter]="16">
-                <div nz-col nzSpan="12">
-                  <nz-form-item>
-                    <nz-form-label [nzSpan]="8" nzRequired
-                      >Project Name</nz-form-label
-                    >
-                    <nz-form-control [nzSpan]="16">
-                      <input
-                        nz-input
-                        formControlName="name"
-                        placeholder="Project name"
-                      />
-                    </nz-form-control>
-                  </nz-form-item>
-                </div>
-              </div>
-
-              <button
-                nz-button
-                nzType="text"
-                nzDanger
-                (click)="removeProject(i)"
-                *ngIf="projects.length > 1"
-              >
-                <span nz-icon nzType="delete"></span>
-                Remove
-              </button>
-            </nz-card>
-          </div>
-
-          <div class="add-button-container">
-            <button nz-button nzType="dashed" (click)="addProject()">
-              <span nz-icon nzType="plus"></span>
-              Add Project
-            </button>
-          </div>
-        </div>
+        <app-array-form-section
+          [formArray]="projects"
+          [config]="projectsConfig"
+          (addItemEvent)="addProject()"
+          (removeItemEvent)="removeProject($event)"
+        >
+        </app-array-form-section>
         } @default {
         <div>
           <p>No content</p>
         </div>
         } }
+
         <div *cdkDragPreview>
           <nz-collapse-panel
             nzHeader="{{ item.header }}"
             class="collapse-box"
           ></nz-collapse-panel>
         </div>
+
         <ng-template #extraTpl>
           <div cdkDragHandle class="collapse-drag-handle">
             <span nz-icon nzType="drag"></span>
@@ -374,6 +79,7 @@
     </nz-collapse>
   </form>
 </nz-card>
+
 <ng-template #actionEditorTpl>
   <nz-space>
     <button *nzSpaceItem nz-button nzType="default" (click)="clearForm()">

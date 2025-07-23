@@ -8,6 +8,7 @@ import { NzFormModule } from 'ng-zorro-antd/form';
 import { NzGridModule } from 'ng-zorro-antd/grid';
 import { NzIconModule } from 'ng-zorro-antd/icon';
 import { NzInputModule } from 'ng-zorro-antd/input';
+import { NzInputNumberModule } from 'ng-zorro-antd/input-number';
 import { NzListModule } from 'ng-zorro-antd/list';
 import { NzNotificationModule } from 'ng-zorro-antd/notification';
 import { NzProgressModule } from 'ng-zorro-antd/progress';
@@ -20,6 +21,7 @@ import { NzToolTipModule } from 'ng-zorro-antd/tooltip';
 import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
+import { NzRadioModule } from 'ng-zorro-antd/radio';
 
 export const NG_ZORRO_MODULES = [
   NzAvatarModule,
@@ -32,6 +34,7 @@ export const NG_ZORRO_MODULES = [
   NzGridModule,
   NzIconModule,
   NzInputModule,
+  NzInputNumberModule,
   NzListModule,
   NzNotificationModule,
   NzProgressModule,
@@ -44,6 +47,7 @@ export const NG_ZORRO_MODULES = [
   NzTypographyModule,
   NzUploadModule,
   NzSegmentedModule,
+  NzRadioModule,
 ];
 
 // Export individual modules for services that need to be imported separately

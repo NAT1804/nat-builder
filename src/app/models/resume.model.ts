@@ -6,8 +6,6 @@ export enum SKILL_LEVEL {
   EXPERT = 'Expert',
 }
 
-export type SkillLevel = SKILL_LEVEL;
-
 export interface CustomSection {
   name?: string;
   description?: string;
@@ -31,7 +29,7 @@ export interface IEducation extends CustomSection {
 
 export interface ISkill {
   name?: string;
-  level?: SkillLevel;
+  level?: SKILL_LEVEL;
 }
 
 export interface IPersonalInfo {
@@ -66,10 +64,10 @@ export enum RESUME_SECTION {
 }
 
 export const DEFAULT_RESUME_LIST_SECTIONS = [
-  {
-    header: 'Personal Info',
-    formGroupName: RESUME_SECTION.PERSONAL_INFO,
-  },
+  // {
+  //   header: 'Personal Info',
+  //   formGroupName: RESUME_SECTION.PERSONAL_INFO,
+  // },
   {
     header: 'Summary',
     formGroupName: RESUME_SECTION.SUMMARY,
@@ -89,5 +87,28 @@ export const DEFAULT_RESUME_LIST_SECTIONS = [
   {
     header: 'Projects',
     formGroupName: RESUME_SECTION.PROJECTS,
+  },
+];
+
+export const SKILL_LEVEL_OPTIONS = [
+  {
+    label: 'Novice',
+    value: SKILL_LEVEL.NOVICE,
+  },
+  {
+    label: 'Beginner',
+    value: SKILL_LEVEL.BEGINNER,
+  },
+  {
+    label: 'Skillful',
+    value: SKILL_LEVEL.SKILLFUL,
+  },
+  {
+    label: 'Experienced',
+    value: SKILL_LEVEL.EXPERIENCED,
+  },
+  {
+    label: 'Expert',
+    value: SKILL_LEVEL.EXPERT,
   },
 ];
