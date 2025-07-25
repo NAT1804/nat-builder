@@ -1,82 +1,345 @@
 import { Injectable } from '@angular/core';
-import { IPersonalInfo, IResumeData } from '@models/resume.model';
-
-export interface SvgConfig {
-  page: {
-    width: number;
-    height: number;
-    margins: { top: number; right: number; bottom: number; left: number };
-  };
-  fonts: {
-    family: string;
-    sizes: {
-      small: number;
-      default: number;
-      large: number;
-    };
-    lineHeights: {
-      small: number;
-      default: number;
-      large: number;
-    };
-  };
-  colors: {
-    primary: string;
-    text: string;
-    divider: string;
-  };
-  spacing: {
-    sectionGap: number;
-    elementGap: number;
-    lineGap: number;
-  };
-}
+import {
+  IPersonalInfo,
+  IResumeData,
+  IExperience,
+  IEducation,
+  IProject,
+  ISkill,
+  SKILL_LEVEL,
+} from '@models/resume.model';
+import { SvgConfig, PageContent } from '@models/svg.model';
+import { HtmlToSvgConverter } from '@utils/html-to-svg-converter';
 
 @Injectable({
   providedIn: 'root',
 })
 export class SvgGeneratorService {
-  generateSVG(formData: IResumeData, config: SvgConfig): string {
-    const { width, height, margins } = config.page;
-    const { family, sizes } = config.fonts;
-    const { primary, text, divider } = config.colors;
+  generateSVG(
+    formData: IResumeData,
+    config: SvgConfig,
+    initialListSections?: any[]
+  ): string {
+    const pages = this.generatePages(formData, config, initialListSections);
 
-    let svgContent = `
-      <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <style>
-            .title-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.large}px; }
-            .default-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.default}px; }
-            .small-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.small}px; }
-            .section-divider { stroke: ${divider}; stroke-width: 0.5px; }
-          </style>
-        </defs>
-    `;
+    if (pages.length <= 1 || !config.page.enablePageSplitting) {
+      return this.renderSinglePage(
+        pages[0] || { content: '', pageNumber: 1 },
+        config
+      );
+    }
 
+    // Return multi-page side-by-side layout
+    return this.renderMultiPageLayout(pages, config);
+  }
+
+  generateSinglePage(
+    formData: IResumeData,
+    config: SvgConfig,
+    initialListSections?: any[],
+    pageNumber: number = 1
+  ): string {
+    const pages = this.generatePages(formData, config, initialListSections);
+    const targetPage = pages[pageNumber - 1];
+
+    if (!targetPage) {
+      return this.renderSinglePage({ content: '', pageNumber: 1 }, config);
+    }
+
+    return this.renderSinglePage(targetPage, config);
+  }
+
+  getTotalPages(
+    formData: IResumeData,
+    config: SvgConfig,
+    initialListSections?: any[]
+  ): number {
+    const pages = this.generatePages(formData, config, initialListSections);
+    return Math.max(1, pages.length);
+  }
+
+  private generatePages(
+    formData: IResumeData,
+    config: SvgConfig,
+    initialListSections?: any[]
+  ): PageContent[] {
+    const { margins } = config.page;
+
+    // Calculate maximum content height per page
+    const maxContentHeight = config.page.height - margins.top - margins.bottom;
+    const configWithPageSplitting = {
+      ...config,
+      page: {
+        ...config.page,
+        maxContentHeight,
+        enablePageSplitting: config.page.enablePageSplitting ?? true,
+      },
+    };
+
+    let pages: PageContent[] = [];
+    let currentPageContent = '';
+    let currentPageNumber = 1;
     let y = margins.top;
 
-    // Generate Personal Info Section
+    // Generate Personal Info Section (always on first page)
     const personalInfoResult = this.generatePersonalInfoSection(
       formData.personalInfo,
       y,
-      config
+      configWithPageSplitting
     );
-    svgContent += personalInfoResult.content;
+    currentPageContent += personalInfoResult.content;
     y = personalInfoResult.newY;
 
-    // Generate Summary Section
-    if (formData.summary) {
-      const summaryResult = this.generateSummarySection(
-        formData.summary,
-        y,
-        config
-      );
-      svgContent += summaryResult.content;
-      y = summaryResult.newY;
+    // Generate sections based on initialListSections order
+    if (initialListSections) {
+      for (const section of initialListSections) {
+        const sectionKey = section.formGroupName;
+        const sectionHeader = section.header;
+
+        let sectionResult: { content: string; newY: number } | null = null;
+
+        switch (sectionKey) {
+          case 'summary':
+            if (formData.summary) {
+              sectionResult = this.generateSummarySection(
+                formData.summary,
+                y,
+                configWithPageSplitting
+              );
+            }
+            break;
+
+          case 'experience':
+            if (formData.experience && formData.experience.length > 0) {
+              sectionResult = this.generateExperienceSection(
+                formData.experience,
+                y,
+                configWithPageSplitting,
+                sectionHeader
+              );
+            }
+            break;
+
+          case 'skills':
+            if (formData.skills && formData.skills.length > 0) {
+              sectionResult = this.generateSkillsSection(
+                formData.skills,
+                y,
+                configWithPageSplitting,
+                sectionHeader
+              );
+            }
+            break;
+
+          case 'education':
+            if (formData.education && formData.education.length > 0) {
+              sectionResult = this.generateEducationSection(
+                formData.education,
+                y,
+                configWithPageSplitting,
+                sectionHeader
+              );
+            }
+            break;
+
+          case 'projects':
+            if (formData.projects && formData.projects.length > 0) {
+              sectionResult = this.generateProjectsSection(
+                formData.projects,
+                y,
+                configWithPageSplitting,
+                sectionHeader
+              );
+            }
+            break;
+        }
+
+        if (sectionResult) {
+          // Check if we need to start a new page
+          if (
+            configWithPageSplitting.page.enablePageSplitting &&
+            sectionResult.newY > margins.top + maxContentHeight
+          ) {
+            // Save current page
+            pages.push({
+              content: currentPageContent,
+              pageNumber: currentPageNumber,
+            });
+
+            // Start new page
+            currentPageNumber++;
+            currentPageContent = '';
+            y = margins.top;
+
+            // Regenerate the section for the new page
+            switch (sectionKey) {
+              case 'summary':
+                if (formData.summary) {
+                  sectionResult = this.generateSummarySection(
+                    formData.summary,
+                    y,
+                    configWithPageSplitting
+                  );
+                }
+                break;
+              case 'experience':
+                if (formData.experience && formData.experience.length > 0) {
+                  sectionResult = this.generateExperienceSection(
+                    formData.experience,
+                    y,
+                    configWithPageSplitting,
+                    sectionHeader
+                  );
+                }
+                break;
+              case 'skills':
+                if (formData.skills && formData.skills.length > 0) {
+                  sectionResult = this.generateSkillsSection(
+                    formData.skills,
+                    y,
+                    configWithPageSplitting,
+                    sectionHeader
+                  );
+                }
+                break;
+              case 'education':
+                if (formData.education && formData.education.length > 0) {
+                  sectionResult = this.generateEducationSection(
+                    formData.education,
+                    y,
+                    configWithPageSplitting,
+                    sectionHeader
+                  );
+                }
+                break;
+              case 'projects':
+                if (formData.projects && formData.projects.length > 0) {
+                  sectionResult = this.generateProjectsSection(
+                    formData.projects,
+                    y,
+                    configWithPageSplitting,
+                    sectionHeader
+                  );
+                }
+                break;
+            }
+          }
+
+          if (sectionResult) {
+            currentPageContent += sectionResult.content;
+            y = sectionResult.newY;
+          }
+        }
+      }
     }
 
-    svgContent += '</svg>';
-    return svgContent;
+    // Add the last page
+    if (currentPageContent) {
+      pages.push({
+        content: currentPageContent,
+        pageNumber: currentPageNumber,
+      });
+    }
+
+    // Process page breaks within content
+    let finalPages: PageContent[] = [];
+    pages.forEach((page) => {
+      const subPages = this.processMultiPageContent(
+        page.content,
+        configWithPageSplitting
+      );
+      finalPages = finalPages.concat(
+        subPages.map((subPage, index) => ({
+          content: subPage.content,
+          pageNumber: finalPages.length + index + 1,
+        }))
+      );
+    });
+
+    return finalPages.length > 0
+      ? finalPages
+      : [{ content: '', pageNumber: 1 }];
+  }
+
+  private renderSinglePage(page: PageContent, config: SvgConfig): string {
+    const { width, height } = config.page;
+    const { family, sizes } = config.fonts;
+    const { primary, text, divider } = config.colors;
+
+    const svgDefs = `
+      <defs>
+        <style>
+          .title-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.large}px; }
+          .default-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.default}px; }
+          .small-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.small}px; }
+          .section-divider { stroke: ${divider}; stroke-width: 0.5px; }
+        </style>
+      </defs>
+    `;
+
+    return `
+      <svg viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+        ${svgDefs}
+        ${page.content}
+      </svg>
+    `;
+  }
+
+  private renderMultiPageLayout(
+    pages: PageContent[],
+    config: SvgConfig
+  ): string {
+    const { width, height } = config.page;
+    const { family, sizes } = config.fonts;
+    const { primary, text, divider } = config.colors;
+
+    const svgDefs = `
+      <defs>
+        <style>
+          .title-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.large}px; }
+          .default-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.default}px; }
+          .small-text { fill: ${text}; font-family: ${family}; font-size: ${sizes.small}px; }
+          .section-divider { stroke: ${divider}; stroke-width: 0.5px; }
+        </style>
+      </defs>
+    `;
+
+    // Generate multi-page SVG with pages side by side
+    const totalWidth = width * pages.length;
+    let multiPageContent = '';
+
+    pages.forEach((page, index) => {
+      const xOffset = width * index;
+      multiPageContent += `
+        <g transform="translate(${xOffset}, 0)">
+          ${page.content}
+
+          <!-- Page boundary line -->
+          ${
+            index < pages.length - 1
+              ? `
+            <line
+              x1="${width - 1}"
+              y1="0"
+              x2="${width - 1}"
+              y2="${height}"
+              stroke="#e0e0e0"
+              stroke-width="2"
+              stroke-dasharray="5,5"
+            />
+          `
+              : ''
+          }
+        </g>
+      `;
+    });
+
+    return `
+      <svg viewBox="0 0 ${totalWidth} ${height}" xmlns="http://www.w3.org/2000/svg">
+        ${svgDefs}
+        ${multiPageContent}
+      </svg>
+    `;
   }
 
   private generatePersonalInfoSection(
@@ -221,6 +484,7 @@ export class SvgGeneratorService {
     }
 
     // Add divider line
+    currY += sectionGap;
     content += `
       <line
         x1="${leftX}"
@@ -230,415 +494,505 @@ export class SvgGeneratorService {
         class="section-divider"
       />
     `;
-    currY += lineGap * 2;
-
-    return { content, newY: currY + sectionGap };
-  }
-}
-
-// Helper class for HTML to SVG conversion
-export class HtmlToSvgConverter {
-  convertHtmlToSvg(
-    element: Element,
-    x: number,
-    y: number,
-    maxWidth: number,
-    options: {
-      fontFamily: string;
-      fontSize: number;
-      lineHeight: number;
-      color: string;
-    }
-  ): { content: string; newY: number } {
-    let content = '';
-    let currY = y;
-    const { fontFamily, fontSize, lineHeight, color } = options;
-
-    // Process each child node
-    for (let i = 0; i < element.childNodes.length; i++) {
-      const node = element.childNodes[i];
-
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent?.trim();
-        if (text) {
-          const lines = this.wrapText(text, maxWidth, fontSize);
-          lines.forEach((line, index) => {
-            content += `
-              <text
-                x="${x}"
-                y="${currY + fontSize}"
-                font-family="${fontFamily}"
-                font-size="${fontSize}"
-                fill="${color}"
-              >${this.escapeXml(line)}</text>
-            `;
-            currY += fontSize * lineHeight;
-          });
-        }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const elem = node as Element;
-        const tagName = elem.tagName.toLowerCase();
-
-        switch (tagName) {
-          case 'p':
-            const pResult = this.processParagraph(
-              elem,
-              x,
-              currY,
-              maxWidth,
-              options
-            );
-            content += pResult.content;
-            currY = pResult.newY + fontSize * 0.5;
-            break;
-
-          case 'ol':
-          case 'ul':
-            const listResult = this.processList(
-              elem,
-              x,
-              currY,
-              maxWidth,
-              options,
-              tagName === 'ol'
-            );
-            content += listResult.content;
-            currY = listResult.newY + fontSize * 0.5;
-            break;
-
-          default:
-            const inlineResult = this.processInlineElement(
-              elem,
-              x,
-              currY,
-              maxWidth,
-              options
-            );
-            content += inlineResult.content;
-            currY = inlineResult.newY;
-        }
-      }
-    }
+    currY += lineGap;
 
     return { content, newY: currY };
   }
 
-  private processParagraph(
-    elem: Element,
-    x: number,
+  private generateExperienceSection(
+    experience: IExperience[],
     y: number,
-    maxWidth: number,
-    options: {
-      fontFamily: string;
-      fontSize: number;
-      lineHeight: number;
-      color: string;
-    }
+    config: SvgConfig,
+    sectionHeader: string
   ): { content: string; newY: number } {
     let content = '';
-    let currY = y;
-    const { fontFamily, fontSize, lineHeight, color } = options;
+    let newY = y;
+    const { margins } = config.page;
+    const { family, sizes, lineHeights } = config.fonts;
+    const { text, primary } = config.colors;
+    const { sectionGap, lineGap, elementGap } = config.spacing;
 
-    const formattedText = this.extractFormattedText(elem);
+    const leftX = margins.left;
+    const rightX = 210 - margins.right;
+    let currY = newY;
 
-    if (!formattedText.length) {
-      return { content, newY: currY + fontSize * lineHeight };
+    // Section title
+    content += `
+      <text
+        x="${leftX}"
+        y="${currY + sizes.large}"
+        class="title-text"
+        font-weight="bold"
+        fill="${primary}"
+      >${sectionHeader}</text>
+    `;
+    currY += sizes.large * lineHeights.large + lineGap;
+
+    // Experience entries
+    experience.forEach((exp, index) => {
+      // Check if we need space for this entry (estimate minimum height)
+      const estimatedEntryHeight = this.estimateExperienceEntryHeight(
+        exp,
+        config
+      );
+
+      if (
+        config.page.enablePageSplitting &&
+        config.page.maxContentHeight &&
+        currY + estimatedEntryHeight >
+          margins.top + config.page.maxContentHeight
+      ) {
+        // Add page break indicator
+        content += `
+          <!-- PAGE_BREAK -->
+        `;
+        currY = margins.top;
+
+        // Add section header again on new page
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.large}"
+            class="title-text"
+            font-weight="bold"
+            fill="${primary}"
+          >${sectionHeader} (continued)</text>
+        `;
+        currY += sizes.large * lineHeights.large + lineGap;
+      }
+
+      // Job title and company
+      const jobInfo = [exp.jobTitle, exp.company].filter(Boolean).join(' at ');
+      if (jobInfo) {
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+            font-weight="bold"
+          >${this.escapeXml(jobInfo)}</text>
+        `;
+        currY += sizes.default * lineHeights.default + lineGap / 2;
+      }
+
+      // Location and dates
+      const locationInfo = exp.city || '';
+      const dateInfo = this.formatDateRange(exp.startDate, exp.endDate);
+
+      if (locationInfo || dateInfo) {
+        const locationDateInfo = [locationInfo, dateInfo]
+          .filter(Boolean)
+          .join(' | ');
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.small}"
+            class="default-text"
+            font-style="italic"
+          >${this.escapeXml(locationDateInfo)}</text>
+        `;
+        currY += sizes.small * lineHeights.small + lineGap;
+      }
+
+      // Description
+      if (exp.description) {
+        const htmlToSvgConverter = new HtmlToSvgConverter();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(exp.description, 'text/html');
+
+        const svgElements = htmlToSvgConverter.convertHtmlToSvg(
+          doc.body,
+          leftX,
+          currY,
+          rightX - leftX,
+          {
+            fontFamily: family,
+            fontSize: sizes.default,
+            lineHeight: lineHeights.default,
+            color: text,
+          }
+        );
+
+        content += svgElements.content;
+        currY = svgElements.newY;
+      }
+
+      // Add spacing between entries
+      if (index < experience.length - 1) {
+        currY += elementGap;
+      }
+    });
+
+    // Add divider line
+    currY += sectionGap;
+    content += `
+      <line
+        x1="${leftX}"
+        y1="${currY}"
+        x2="${rightX}"
+        y2="${currY}"
+        class="section-divider"
+      />
+    `;
+    currY += lineGap;
+
+    return { content, newY: currY };
+  }
+
+  private estimateExperienceEntryHeight(
+    exp: IExperience,
+    config: SvgConfig
+  ): number {
+    const { sizes, lineHeights } = config.fonts;
+    const { lineGap, elementGap } = config.spacing;
+
+    let estimatedHeight = 0;
+
+    // Job title and company
+    if (exp.jobTitle || exp.company) {
+      estimatedHeight += sizes.default * lineHeights.default + lineGap / 2;
     }
 
-    let currentLineSegments: Array<{ segment: any; text: string }> = [];
-    let currentLineWidth = 0;
+    // Location and dates
+    if (exp.city || exp.startDate || exp.endDate) {
+      estimatedHeight += sizes.small * lineHeights.small + lineGap;
+    }
 
-    formattedText.forEach((segment) => {
-      const words = segment.text.split(' ');
-      let currentSegmentText = '';
+    // Description (estimate based on character count)
+    if (exp.description) {
+      const charCount = exp.description.length;
+      const estimatedLines = Math.ceil(charCount / 80); // Rough estimate
+      estimatedHeight += estimatedLines * sizes.small * lineHeights.small;
+    }
 
-      words.forEach((word, wordIndex) => {
-        const wordWithSpace = wordIndex > 0 ? ` ${word}` : word;
-        const wordWidth = this.getTextWidth(wordWithSpace, fontSize);
+    estimatedHeight += elementGap; // Spacing after entry
 
-        if (
-          currentLineWidth + wordWidth > maxWidth &&
-          currentLineSegments.length > 0
-        ) {
-          if (currentSegmentText) {
-            currentLineSegments.push({
-              segment: { ...segment },
-              text: currentSegmentText,
-            });
-          }
-          content += this.renderFormattedLine(
-            currentLineSegments,
-            x,
-            currY + fontSize,
-            fontFamily,
-            fontSize,
-            color
-          );
-          currY += fontSize * lineHeight;
+    return estimatedHeight;
+  }
 
-          currentLineSegments = [];
-          currentLineWidth = 0;
-          currentSegmentText = word;
-          currentLineWidth = this.getTextWidth(word, fontSize);
-        } else {
-          currentSegmentText += wordWithSpace;
-          currentLineWidth += wordWidth;
-        }
-      });
+  private processMultiPageContent(
+    content: string,
+    config: SvgConfig
+  ): PageContent[] {
+    const pages: PageContent[] = [];
+    const pageBreaks = content.split('<!-- PAGE_BREAK -->');
 
-      if (currentSegmentText) {
-        currentLineSegments.push({
-          segment: { ...segment },
-          text: currentSegmentText,
+    pageBreaks.forEach((pageContent, index) => {
+      if (pageContent.trim()) {
+        pages.push({
+          content: pageContent.trim(),
+          pageNumber: index + 1,
         });
       }
     });
 
-    if (currentLineSegments.length > 0) {
-      content += this.renderFormattedLine(
-        currentLineSegments,
-        x,
-        currY + fontSize,
-        fontFamily,
-        fontSize,
-        color
-      );
-      currY += fontSize * lineHeight;
-    }
+    return pages.length > 0 ? pages : [{ content, pageNumber: 1 }];
+  }
+
+  private generateSkillsSection(
+    skills: ISkill[],
+    y: number,
+    config: SvgConfig,
+    sectionHeader: string
+  ): { content: string; newY: number } {
+    let content = '';
+    let newY = y;
+    const { margins } = config.page;
+    const { family, sizes, lineHeights } = config.fonts;
+    const { text, primary } = config.colors;
+    const { sectionGap, lineGap } = config.spacing;
+
+    const leftX = margins.left;
+    const rightX = 210 - margins.right;
+    let currY = newY;
+
+    // Section title
+    content += `
+      <text
+        x="${leftX}"
+        y="${currY + sizes.large}"
+        class="title-text"
+        font-weight="bold"
+        fill="${primary}"
+      >${sectionHeader}</text>
+    `;
+    currY += sizes.large * lineHeights.large + lineGap;
+
+    // Group skills by level or display as list
+    skills.forEach((skill) => {
+      let skillText = skill.name;
+      if (skill.level && skill.level !== SKILL_LEVEL.NOVICE) {
+        skillText += ` (${skill.level})`;
+      }
+      if (skill.name) {
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+          >${this.escapeXml(skillText ?? '')}</text>
+        `;
+        currY += sizes.default * lineHeights.default;
+      }
+    });
+
+    // Add divider line
+    currY += sectionGap;
+    content += `
+      <line
+        x1="${leftX}"
+        y1="${currY}"
+        x2="${rightX}"
+        y2="${currY}"
+        class="section-divider"
+      />
+    `;
+    currY += lineGap;
 
     return { content, newY: currY };
   }
 
-  private renderFormattedLine(
-    lineSegments: Array<{ segment: any; text: string }>,
-    x: number,
+  private generateEducationSection(
+    education: IEducation[],
     y: number,
-    fontFamily: string,
-    fontSize: number,
-    color: string
+    config: SvgConfig,
+    sectionHeader: string
+  ): { content: string; newY: number } {
+    let content = '';
+    let newY = y;
+    const { margins } = config.page;
+    const { family, sizes, lineHeights } = config.fonts;
+    const { text, primary } = config.colors;
+    const { sectionGap, lineGap, elementGap } = config.spacing;
+
+    const leftX = margins.left;
+    const rightX = 210 - margins.right;
+    let currY = newY;
+
+    // Section title
+    content += `
+      <text
+        x="${leftX}"
+        y="${currY + sizes.large}"
+        class="title-text"
+        font-weight="bold"
+        fill="${primary}"
+      >${sectionHeader}</text>
+    `;
+    currY += sizes.large * lineHeights.large + lineGap;
+
+    // Education entries
+    education.forEach((edu, index) => {
+      // Degree and school
+      const degreeInfo = [edu.degree, edu.school].filter(Boolean).join(' - ');
+      if (degreeInfo) {
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+            font-weight="bold"
+          >${this.escapeXml(degreeInfo)}</text>
+        `;
+        currY += sizes.default * lineHeights.default + lineGap / 2;
+      }
+
+      // Location and dates
+      const locationInfo = edu.city || '';
+      const dateInfo = this.formatDateRange(edu.startDate, edu.endDate);
+
+      if (locationInfo || dateInfo) {
+        const locationDateInfo = [locationInfo, dateInfo]
+          .filter(Boolean)
+          .join(' | ');
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+            font-style="italic"
+          >${this.escapeXml(locationDateInfo)}</text>
+        `;
+        currY += sizes.default * lineHeights.default + lineGap;
+      }
+
+      // Description
+      if (edu.description) {
+        const htmlToSvgConverter = new HtmlToSvgConverter();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(edu.description, 'text/html');
+
+        const svgElements = htmlToSvgConverter.convertHtmlToSvg(
+          doc.body,
+          leftX,
+          currY,
+          rightX - leftX,
+          {
+            fontFamily: family,
+            fontSize: sizes.default,
+            lineHeight: lineHeights.default,
+            color: text,
+          }
+        );
+
+        content += svgElements.content;
+        currY = svgElements.newY;
+      }
+
+      // Add spacing between entries
+      if (index < education.length - 1) {
+        currY += elementGap;
+      }
+    });
+
+    // Add divider line
+    currY += sectionGap;
+    content += `
+      <line
+        x1="${leftX}"
+        y1="${currY}"
+        x2="${rightX}"
+        y2="${currY}"
+        class="section-divider"
+      />
+    `;
+    currY += lineGap;
+
+    return { content, newY: currY };
+  }
+
+  private generateProjectsSection(
+    projects: IProject[],
+    y: number,
+    config: SvgConfig,
+    sectionHeader: string
+  ): { content: string; newY: number } {
+    let content = '';
+    let newY = y;
+    const { margins } = config.page;
+    const { family, sizes, lineHeights } = config.fonts;
+    const { text, primary } = config.colors;
+    const { sectionGap, lineGap, elementGap } = config.spacing;
+
+    const leftX = margins.left;
+    const rightX = 210 - margins.right;
+    let currY = newY;
+
+    // Section title
+    content += `
+      <text
+        x="${leftX}"
+        y="${currY + sizes.large}"
+        class="title-text"
+        font-weight="bold"
+        fill="${primary}"
+      >${sectionHeader}</text>
+    `;
+    currY += sizes.large * lineHeights.large + lineGap;
+
+    // Project entries
+    projects.forEach((project, index) => {
+      // Project name
+      if (project.name) {
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+            font-weight="bold"
+          >${this.escapeXml(project.name)}</text>
+        `;
+        currY += sizes.default * lineHeights.default + lineGap / 2;
+      }
+
+      // Location and dates
+      const locationInfo = project.city || '';
+      const dateInfo = this.formatDateRange(project.startDate, project.endDate);
+
+      if (locationInfo || dateInfo) {
+        const locationDateInfo = [locationInfo, dateInfo]
+          .filter(Boolean)
+          .join(' | ');
+        content += `
+          <text
+            x="${leftX}"
+            y="${currY + sizes.default}"
+            class="default-text"
+            font-style="italic"
+          >${this.escapeXml(locationDateInfo)}</text>
+        `;
+        currY += sizes.default * lineHeights.default + lineGap;
+      }
+
+      // Description
+      if (project.description) {
+        const htmlToSvgConverter = new HtmlToSvgConverter();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(project.description, 'text/html');
+
+        const svgElements = htmlToSvgConverter.convertHtmlToSvg(
+          doc.body,
+          leftX,
+          currY,
+          rightX - leftX,
+          {
+            fontFamily: family,
+            fontSize: sizes.default,
+            lineHeight: lineHeights.default,
+            color: text,
+          }
+        );
+
+        content += svgElements.content;
+        currY = svgElements.newY;
+      }
+
+      // Add spacing between entries
+      if (index < projects.length - 1) {
+        currY += elementGap;
+      }
+    });
+
+    // Add divider line
+    currY += sectionGap;
+    content += `
+      <line
+        x1="${leftX}"
+        y1="${currY}"
+        x2="${rightX}"
+        y2="${currY}"
+        class="section-divider"
+      />
+    `;
+    currY += lineGap;
+
+    return { content, newY: currY };
+  }
+
+  private formatDateRange(
+    startDate?: Date | null,
+    endDate?: Date | null
   ): string {
-    let content = '';
-    let currentX = x;
+    if (!startDate && !endDate) return '';
 
-    lineSegments.forEach((item) => {
-      const { segment, text } = item;
-      const trimmedText = text.trim();
-      if (!trimmedText) return;
-
-      let textElement = `
-        <text
-          x="${currentX}"
-          y="${y}"
-          font-family="${fontFamily}"
-          font-size="${fontSize}"
-          fill="${color}"
-      `;
-
-      if (segment.bold) textElement += ` font-weight="bold"`;
-      if (segment.italic) textElement += ` font-style="italic"`;
-
-      textElement += `>`;
-
-      if (segment.underline || segment.strikethrough) {
-        textElement += `<tspan`;
-        if (segment.underline) textElement += ` text-decoration="underline"`;
-        if (segment.strikethrough)
-          textElement += ` text-decoration="line-through"`;
-        textElement += `>${this.escapeXml(trimmedText)}</tspan>`;
-      } else {
-        textElement += this.escapeXml(trimmedText);
-      }
-
-      textElement += `</text>`;
-      content += textElement;
-
-      currentX += this.getTextWidth(text, fontSize);
-    });
-
-    return content;
-  }
-
-  private processList(
-    elem: Element,
-    x: number,
-    y: number,
-    maxWidth: number,
-    options: {
-      fontFamily: string;
-      fontSize: number;
-      lineHeight: number;
-      color: string;
-    },
-    isOrdered: boolean
-  ): { content: string; newY: number } {
-    let content = '';
-    let currY = y;
-    const { fontFamily, fontSize, lineHeight, color } = options;
-    const listItems = elem.querySelectorAll('li');
-    const indentX = x + fontSize * 2;
-
-    listItems.forEach((li, index) => {
-      const marker = isOrdered ? `${index + 1}.` : '•';
-      content += `
-        <text
-          x="${x}"
-          y="${currY + fontSize}"
-          font-family="${fontFamily}"
-          font-size="${fontSize}"
-          fill="${color}"
-        >${marker}</text>
-      `;
-
-      const formattedText = this.extractFormattedText(li);
-      let lineX = indentX;
-      let isNewLine = false;
-
-      formattedText.forEach((segment, segmentIndex) => {
-        const availableWidth = isNewLine
-          ? maxWidth - (indentX - x)
-          : maxWidth - (lineX - x);
-        const lines = this.wrapText(segment.text, availableWidth, fontSize);
-
-        lines.forEach((line, lineIndex) => {
-          if (lineIndex > 0 || isNewLine) {
-            lineX = indentX;
-            if (lineIndex > 0 || (isNewLine && segmentIndex > 0)) {
-              currY += fontSize * lineHeight;
-            }
-          }
-
-          let textElement = `
-            <text
-              x="${lineX}"
-              y="${currY + fontSize}"
-              font-family="${fontFamily}"
-              font-size="${fontSize}"
-              fill="${color}"
-          `;
-
-          if (segment.bold) textElement += ` font-weight="bold"`;
-          if (segment.italic) textElement += ` font-style="italic"`;
-
-          textElement += `>`;
-
-          if (segment.underline || segment.strikethrough) {
-            textElement += `<tspan`;
-            if (segment.underline)
-              textElement += ` text-decoration="underline"`;
-            if (segment.strikethrough)
-              textElement += ` text-decoration="line-through"`;
-            textElement += `>${this.escapeXml(line)}</tspan>`;
-          } else {
-            textElement += this.escapeXml(line);
-          }
-
-          textElement += `</text>`;
-          content += textElement;
-
-          if (lineIndex === lines.length - 1) {
-            lineX += this.getTextWidth(line, fontSize);
-            isNewLine = false;
-          } else {
-            isNewLine = true;
-          }
-        });
-      });
-
-      currY += fontSize * lineHeight;
-    });
-
-    return { content, newY: currY };
-  }
-
-  private processInlineElement(
-    elem: Element,
-    x: number,
-    y: number,
-    maxWidth: number,
-    options: {
-      fontFamily: string;
-      fontSize: number;
-      lineHeight: number;
-      color: string;
-    }
-  ): { content: string; newY: number } {
-    const formattedText = this.extractFormattedText(elem);
-    let content = '';
-    let currY = y;
-
-    formattedText.forEach((segment) => {
-      const pResult = this.processParagraph(
-        this.createParagraphElement(segment.text),
-        x,
-        currY,
-        maxWidth,
-        options
-      );
-      content += pResult.content;
-      currY = pResult.newY;
-    });
-
-    return { content, newY: currY };
-  }
-
-  private extractFormattedText(elem: Element): Array<{
-    text: string;
-    bold?: boolean;
-    italic?: boolean;
-    underline?: boolean;
-    strikethrough?: boolean;
-  }> {
-    const segments: Array<{
-      text: string;
-      bold?: boolean;
-      italic?: boolean;
-      underline?: boolean;
-      strikethrough?: boolean;
-    }> = [];
-
-    const processNode = (
-      node: Node,
-      formatting: {
-        bold?: boolean;
-        italic?: boolean;
-        underline?: boolean;
-        strikethrough?: boolean;
-      } = {}
-    ) => {
-      if (node.nodeType === Node.TEXT_NODE) {
-        const text = node.textContent?.trim();
-        if (text) {
-          segments.push({ text, ...formatting });
-        }
-      } else if (node.nodeType === Node.ELEMENT_NODE) {
-        const elem = node as Element;
-        const tagName = elem.tagName.toLowerCase();
-        const newFormatting = { ...formatting };
-
-        switch (tagName) {
-          case 'strong':
-          case 'b':
-            newFormatting.bold = true;
-            break;
-          case 'em':
-          case 'i':
-            newFormatting.italic = true;
-            break;
-          case 'u':
-            newFormatting.underline = true;
-            break;
-          case 's':
-          case 'strike':
-            newFormatting.strikethrough = true;
-            break;
-        }
-
-        elem.childNodes.forEach((child) => processNode(child, newFormatting));
-      }
+    const formatDate = (date: Date | null | undefined) => {
+      if (!date) return '';
+      return date instanceof Date
+        ? date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+        : new Date(date).toLocaleDateString('en-US', {
+            month: 'short',
+            year: 'numeric',
+          });
     };
 
-    elem.childNodes.forEach((child) => processNode(child));
-    return segments;
+    const start = formatDate(startDate);
+    const end = endDate ? formatDate(endDate) : 'Present';
+
+    if (start && end) return `${start} - ${end}`;
+    if (start) return start;
+    if (end && end !== 'Present') return end;
+
+    return '';
   }
 
   private wrapText(text: string, maxWidth: number, fontSize: number): string[] {
@@ -670,17 +1024,12 @@ export class HtmlToSvgConverter {
   }
 
   private escapeXml(text: string): string {
+    if (!text) return '';
     return text
       .replace(/&/g, '&amp;')
       .replace(/</g, '&lt;')
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&apos;');
-  }
-
-  private createParagraphElement(text: string): Element {
-    const p = document.createElement('p');
-    p.textContent = text;
-    return p;
   }
 }

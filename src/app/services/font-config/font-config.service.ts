@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { SvgConfig } from '../svg-generator/svg-generator.service';
+import { SvgConfig } from '@models/svg.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,6 +10,7 @@ export class FontConfigService {
       width: 210, // A4 in mm
       height: 297,
       margins: { top: 10, right: 10, bottom: 10, left: 10 },
+      enablePageSplitting: true,
     },
     fonts: {
       family: 'Courier New, monospace',

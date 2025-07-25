@@ -14,9 +14,19 @@
 @6xl: ~"(min-width: 1152px)";
 @7xl: ~"(min-width: 1280px)";
 
+// Component variables
+@action-preview-panel-background: #fff;
+
 // Mixin usage: .responsive(@breakpoint, { rules })
 .responsive(@breakpoint, @rules) {
   @media @breakpoint {
+    @rules();
+  }
+}
+
+// Dark mode mixin: applies rules only when html has .dark class
+.dark-mode(@rules) {
+  html.dark & {
     @rules();
   }
 }

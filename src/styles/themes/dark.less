@@ -4,3 +4,11 @@
 
 @layout-sider-background: @component-background;
 @layout-header-background: @component-background;
+
+// Override component variables for dark theme
+@action-preview-panel-background: #1f1f1f;
+
+// CSS Custom Properties for runtime theme switching
+:root {
+  --action-preview-panel-background: @action-preview-panel-background;
+}

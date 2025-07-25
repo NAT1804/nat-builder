@@ -22,6 +22,8 @@ import { NzTypographyModule } from 'ng-zorro-antd/typography';
 import { NzUploadModule } from 'ng-zorro-antd/upload';
 import { NzSegmentedModule } from 'ng-zorro-antd/segmented';
 import { NzRadioModule } from 'ng-zorro-antd/radio';
+import { NzPaginationModule } from 'ng-zorro-antd/pagination';
+import { NzSwitchModule } from 'ng-zorro-antd/switch';
 
 export const NG_ZORRO_MODULES = [
   NzAvatarModule,
@@ -48,6 +50,8 @@ export const NG_ZORRO_MODULES = [
   NzUploadModule,
   NzSegmentedModule,
   NzRadioModule,
+  NzPaginationModule,
+  NzSwitchModule,
 ];
 
 // Export individual modules for services that need to be imported separately
