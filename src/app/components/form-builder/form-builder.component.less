@@ -1,152 +1,156 @@
-@import "@styles/themes/base.less";
+@import "mixin";
 
-.form-builder-container {
-  height: 100%;
-}
-
-.form-panel {
-  height: auto;
-  overflow-y: auto;
-
-  .responsive(@xl, {
-    height: 100%
-  });
-}
-
-.preview-panel {
-  height: 100%;
-  position: relative;
-
-  .settings-toggle {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    z-index: 10;
-  }
-
-  .action-preview-panel {
-    position: absolute;
-    top: 44px;
-    right: 8px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 12px;
-    border-radius: 8px;
-    border: 1px solid #d9d9d9;
-    background-color: var(--action-preview-panel-background, #fff);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
-
-    &.hidden {
-      opacity: 0;
-      visibility: hidden;
-      transform: translateY(-10px);
-    }
-
-    .font-size-container {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin-top: 8px;
-      nz-input-number {
-        flex: 1;
-      }
-    }
-
-    .page-splitting-container,
-    .pagination-mode-container {
-      display: flex;
-      align-items: center;
-      margin-top: 8px;
-
-      label {
-        display: flex;
-        align-items: center;
-        margin: 0;
-        cursor: pointer;
-
-        span {
-          color: #666;
-          font-size: 12px;
-        }
-      }
-    }
-  }
-
-  .resume-svg {
-    margin: auto;
-    width: auto;
-    height: 100%;
-    aspect-ratio: 210 / 297; /* A4 aspect ratio */
-    background-color: #fff;
-    .svg {
-      display: block;
-      width: 100%;
+.themeMixin({
+  :host {
+    .form-builder-container {
       height: 100%;
     }
-  }
 
-  .pagination-wrapper {
-    position: absolute;
-    bottom: 0px;
-    right: 8px;
-    z-index: 10;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-top: 1px solid #f0f0f0;
-    margin-top: 16px;
+    .form-panel {
+      height: auto;
+      overflow-y: auto;
 
-    nz-pagination {
-      ::ng-deep .ant-pagination {
-        font-size: 12px;
+      .responsive(@xl, {
+        height: 100%
+      });
+    }
 
-        .ant-pagination-item {
-          min-width: 28px;
-          height: 28px;
-          line-height: 26px;
+    .preview-panel {
+      height: 100%;
+      position: relative;
+
+      .settings-toggle {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 10;
+      }
+
+      .action-preview-panel {
+        position: absolute;
+        top: 44px;
+        right: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: @padding-md;
+        padding: @padding-sm;
+        border-radius: 8px;
+        border: 1px solid @border-color-base;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        background: @component-background;
+
+        &.hidden {
+          opacity: 0;
+          visibility: hidden;
+          transform: translateY(-10px);
         }
 
-        .ant-pagination-prev,
-        .ant-pagination-next {
-          min-width: 28px;
-          height: 28px;
-          line-height: 26px;
+        .font-size-container {
+          display: flex;
+          align-items: center;
+          gap: @padding-sm;
+          margin-top: @padding-sm;
+          nz-input-number {
+            flex: 1;
+          }
+        }
+
+        .page-splitting-container,
+        .pagination-mode-container {
+          display: flex;
+          align-items: center;
+          margin-top: @padding-sm;
+
+          label {
+            display: flex;
+            align-items: center;
+            margin: 0;
+            cursor: pointer;
+
+            span {
+              color: @text-color-secondary;
+              font-size: @font-size-sm;
+            }
+          }
+        }
+      }
+
+      .resume-svg {
+        margin: auto;
+        width: auto;
+        height: 100%;
+        aspect-ratio: 210 / 297; /* A4 aspect ratio */
+        background-color: @white;
+        .svg {
+          display: block;
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .pagination-wrapper {
+        position: absolute;
+        bottom: 0px;
+        right: 8px;
+        z-index: 10;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-top: 1px solid @border-color-base;
+        margin-top: 16px;
+
+        nz-pagination {
+          ::ng-deep .ant-pagination {
+            font-size: @font-size-sm;
+
+            .ant-pagination-item {
+              min-width: 28px;
+              height: 28px;
+              line-height: 26px;
+            }
+
+            .ant-pagination-prev,
+            .ant-pagination-next {
+              min-width: 28px;
+              height: 28px;
+              line-height: 26px;
+            }
+          }
         }
       }
     }
+
+    .experience-item,
+    .education-item,
+    .skill-item,
+    .project-item {
+      margin-bottom: 16px;
+    }
+
+    .add-button-container {
+      text-align: center;
+      margin: 16px 0;
+    }
+
+    .form-actions {
+      text-align: center;
+      margin-top: 24px;
+      padding-top: 16px;
+      border-top: 1px solid @border-color-base;
+    }
+
+    .skill-level-display {
+      display: flex;
+      align-items: center;
+      gap: @padding-sm;
+      margin-top: @padding-sm;
+    }
+
+    .level-text {
+      font-size: @font-size-sm;
+      color: @text-color-secondary;
+      min-width: 40px;
+    }
   }
-}
-
-.experience-item,
-.education-item,
-.skill-item,
-.project-item {
-  margin-bottom: 16px;
-}
-
-.add-button-container {
-  text-align: center;
-  margin: 16px 0;
-}
-
-.form-actions {
-  text-align: center;
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 1px solid #d9d9d9;
-}
-
-.skill-level-display {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.level-text {
-  font-size: 12px;
-  color: #666;
-  min-width: 40px;
-}
+});

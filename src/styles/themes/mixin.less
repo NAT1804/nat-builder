@@ -1,12 +1,33 @@
 .themeMixin(@rules) {
   html {
     &.default {
-      @import './default.less';
+      @import "./default.less";
       @rules();
     }
     &.dark {
-      @import './dark.less';
+      @import "./dark.less";
       @rules();
     }
+  }
+}
+
+@3xs: ~"(min-width: 256px)";
+@2xs: ~"(min-width: 288px)";
+@xs: ~"(min-width: 320px)";
+@sm: ~"(min-width: 384px)";
+@md: ~"(min-width: 448px)";
+@lg: ~"(min-width: 512px)";
+@xl: ~"(min-width: 576px)";
+@2xl: ~"(min-width: 672px)";
+@3xl: ~"(min-width: 768px)";
+@4xl: ~"(min-width: 896px)";
+@5xl: ~"(min-width: 1024px)";
+@6xl: ~"(min-width: 1152px)";
+@7xl: ~"(min-width: 1280px)";
+
+// Mixin usage: .responsive(@breakpoint, { rules })
+.responsive(@breakpoint, @rules) {
+  @media @breakpoint {
+    @rules();
   }
 }

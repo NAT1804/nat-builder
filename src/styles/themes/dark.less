@@ -1,14 +1,6 @@
+@import "./base";
 @import (multiple)
   "../../../node_modules/ng-zorro-antd/src/style/themes/dark.less";
-@import "./base";
 
 @layout-sider-background: @component-background;
 @layout-header-background: @component-background;
-
-// Override component variables for dark theme
-@action-preview-panel-background: #1f1f1f;
-
-// CSS Custom Properties for runtime theme switching
-:root {
-  --action-preview-panel-background: @action-preview-panel-background;
-}
