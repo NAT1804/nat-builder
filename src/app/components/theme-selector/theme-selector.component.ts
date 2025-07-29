@@ -1,14 +1,12 @@
 import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Component, Inject, OnInit, PLATFORM_ID, inject } from '@angular/core';
 import { ThemeService } from '@services/theme/theme.service';
-import { NzButtonModule } from 'ng-zorro-antd/button';
-import { NzDropDownModule } from 'ng-zorro-antd/dropdown';
-import { NzIconModule } from 'ng-zorro-antd/icon';
+import { NG_ZORRO_MODULES } from '@shared/ng-zorro.module';
 
 @Component({
   selector: 'nat-theme-selector',
   standalone: true,
-  imports: [CommonModule, NzButtonModule, NzDropDownModule, NzIconModule],
+  imports: [CommonModule, ...NG_ZORRO_MODULES],
   templateUrl: './theme-selector.component.html',
   styleUrl: './theme-selector.component.less',
 })

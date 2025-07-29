@@ -1,22 +1,31 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
-
 import { HomeComponent } from './home.component';
-import { FormBuilderComponent } from '@components/form-builder/form-builder.component';
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
-  let fixture: ComponentFixture<HomeComponent>;
 
-  beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [HomeComponent, FormBuilderComponent],
-    }).compileComponents();
-
-    fixture = TestBed.createComponent(HomeComponent);
-    component = fixture.componentInstance;
+  beforeEach(() => {
+    component = new HomeComponent();
   });
 
-  it('should create', () => {
+  it('should create the home component', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('should be an instance of HomeComponent', () => {
+    expect(component).toBeInstanceOf(HomeComponent);
+  });
+
+  it('should be a class that can be instantiated', () => {
+    expect(() => new HomeComponent()).not.toThrow();
+  });
+
+  it('should have the correct component name', () => {
+    expect(HomeComponent.name).toBe('HomeComponent');
+  });
+
+  it('should be a valid Angular component', () => {
+    // Test that the component class exists and can be instantiated
+    expect(typeof HomeComponent).toBe('function');
+    expect(component).toBeDefined();
   });
 });

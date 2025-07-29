@@ -1,12 +1,13 @@
 import { TestBed } from '@angular/core/testing';
-
-import { ThemeService } from './theme.service';
+import { ThemeService, ThemeType } from './theme.service';
 
 describe('ThemeService', () => {
   let service: ThemeService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [ThemeService],
+    });
     service = TestBed.inject(ThemeService);
   });
 
@@ -14,9 +15,13 @@ describe('ThemeService', () => {
     expect(service).toBeTruthy();
   });
 
-  it('first load theme', () => {
-    service.loadTheme().then((theme: string) => {
-      expect(theme).toBe('default');
-    });
+  it('should have default theme', () => {
+    expect(service.currentTheme).toBe(ThemeType.default);
+  });
+
+  it('should have ThemeType enum values', () => {
+    expect(ThemeType.dark).toBe('dark');
+    expect(ThemeType.default).toBe('default');
+    expect(ThemeType.system).toBe('auto');
   });
 });

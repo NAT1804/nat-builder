@@ -1,22 +1,19 @@
-import { TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { render } from '@testing-library/angular';
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+
   beforeEach(async () => {
-    await TestBed.configureTestingModule({
-      imports: [AppComponent],
-    }).compileComponents();
+    const { fixture } = await render(AppComponent);
+    component = fixture.componentInstance;
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
+  it('should create the app component', async () => {
+    expect(component).toBeTruthy();
   });
 
-  it(`should have the 'nat-builder' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('nat-builder');
+  it('should have title property', async () => {
+    expect(component.title).toBe('nat-builder');
   });
 });

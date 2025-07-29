@@ -1,16 +1,12 @@
-/* To learn more about this file see: https://angular.io/config/tsconfig. */
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "outDir": "./out-tsc/spec",
+    "outDir": "../../dist/out-tsc",
+    "module": "commonjs",
     "types": ["jest", "node"],
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "emitDecoratorMetadata": true
   },
-  "include": [
-    "src/**/*.spec.ts",
-    "src/**/*.d.ts",
-    "jest.config.ts",
-    "setup-jest.ts"
-  ]
+  "files": ["src/test-setup.ts"],
+  "include": ["**/*.spec.ts", "**/*.test.ts", "**/*.d.ts"]
 }
